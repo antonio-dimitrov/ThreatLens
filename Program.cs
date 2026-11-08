@@ -1,28 +1,34 @@
-
+using Microsoft.AspNetCore.Identity;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using ThreatLens.Api.Data;
 using ThreatLens.Api.Services;
+using ThreatLens.Api.Infrastructure;
 
 namespace ThreatLens.Api
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
+           
             builder.Services.AddControllers();
             // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
             builder.Services.AddOpenApi();
 
-            builder.Services.AddScoped<ScanService>();
+            builder.Services
+               .AddApplicationServices(builder.Configuration)
+               .AddJwtAuthentication(builder.Configuration, builder.Environment)
+               .AddErrorHandling();
 
-            builder.Services.AddDbContext<ThreatLensContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnectionString")));
 
             var app = builder.Build();
+
+            app.UseExceptionHandler();
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -30,14 +36,17 @@ namespace ThreatLens.Api
                 app.MapOpenApi();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
 
             app.MapControllers();
 
-            app.Run();
+            await IdentitySeeder.SeedAdminAsync(app.Services);
+
+            await app.RunAsync();
         }
     }
 }

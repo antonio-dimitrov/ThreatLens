@@ -1,19 +1,30 @@
 ﻿using System.Net;
 using System.Text.RegularExpressions;
+using ThreatLens.Api.Models;
 
 namespace ThreatLens.Api.Services
 {
     public class TargetValidator
     {
-        public static bool IsValidTarget(string? target) //<-input can be null
+        public static TargetType? GetTargetType(string? target)
         {
             if (string.IsNullOrWhiteSpace(target))
-                return false;
+                return null;
 
             target = target.Trim();
 
-            return IsValidIpAddress(target)
-                || IsValidDomain(target);
+            if (IsValidIpAddress(target))
+                return TargetType.IpAddress;
+
+            if (IsValidDomain(target))
+                return TargetType.Domain;
+
+            return null;
+        }
+
+        public static bool IsValidTarget(string? target) //<-input can be null
+        {
+            return GetTargetType(target) != null;
         }
 
 

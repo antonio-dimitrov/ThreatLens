@@ -1,26 +1,65 @@
 @rootURL = http://localhost:5116
 
-GET {{rootURL}}/weatherforecast/
-Accept: application/json
+# GET {{rootURL}}/weatherforecast/
+# Accept: application/json
+
+###
+POST {{rootURL}}/api/auth/register
+Content-Type: application/json
+
+{
+  "email": "user1@example.com",
+  "password": "TestPassword123!"
+}
+###
+# @name login2
+POST {{rootURL}}/api/auth/jwt-login
+Content-Type: application/json
+
+{
+  "email": "user2@example.com",
+  "password": "TestPassword123!"
+}
+
+
+###
+# @name login
+POST {{rootURL}}/api/auth/jwt-login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "TestPassword123!"
+}
+
 
 ###
 GET {{rootURL}}/api/scans
 Accept: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 ###
-GET {{rootURL}}/api/scans/1
+GET {{rootURL}}/api/scans/15
 Accept: application/json
+Authorization: Bearer {{login2.response.body.$.accessToken}}
 ###
 POST {{rootURL}}/api/scans
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.$.accessToken}}
 
 {
  "Target" : "8.8.8.8"
 }
 ###
-DELETE {{rootURL}}/api/scans/2
+DELETE {{rootURL}}/api/scans/15
+Authorization: Bearer {{login2.response.body.$.accessToken}}
 ###
-PUT {{rootURL}}/api/scans/1
-Content-Type: application/json
-{
- "Target" : "youtube.com"
-}
+GET {{rootURL}}/api/admin/scans
+Accept: application/json
+Authorization: Bearer {{login2.response.body.$.accessToken}}
+### 10) NO token on the admin endpoint -> 401 Unauthorized
+GET {{rootURL}}/api/admin/scans
+Accept: application/json
+Authorization: Bearer {{login2.response.body.$.accessToken}}
+
+
+
